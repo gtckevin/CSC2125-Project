@@ -36,7 +36,8 @@ var latestBlockId = -1;
 
 
 app.get('/', function(req, res) {
-    var arr = [1,2,3];
+    var arr = [[1,1],[2,2]];
+    console.log(arr.length);
     arr.reverse();
     
 
@@ -58,7 +59,7 @@ function blockGenerationLogestChain(){
         // Now we know if we found an block or not base on different type of protocol add valid block or continue to next node
         if(found) {
             if(nodes[i].honestOrAttacker == true) { //honest node
-                addBlockToNetwork(nodes[i], currentIterForkBranches);
+                addBlockToNetwork(nodes[i], currentIterForkBranches, blocksInForkBranches);
             } else { // attacker node
 
             }
@@ -92,7 +93,10 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
             longestBlockChain.push(currentIterForkBranches[0]);
             currentIterForkBranches.pop();  
         } else { //Case 1.2
-            forkBranches.push(currentIterForkBranches);
+            if(currentIterForkBranches.length != 0) {
+                forkBranches.push(currentIterForkBranches);
+            }
+            
         }
         
     } else { // Case 2
@@ -130,7 +134,9 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
             forkBranches = []; //reset the forkBranches
         } else {
             // Case 2.2
-            forkBranches.push(currentIterForkBranches);
+            if(currentIterForkBranches.length != 0) {
+                forkBranches.push(currentIterForkBranches);
+            }
             currentIterForkBranches = [];
         }
     }
@@ -163,7 +169,38 @@ function currentNodeHashRatioOnCurrentBranch(node) {
     return node.hashRate / totalHashRate;
 }
 
-function addBlockToNetwork(node, currentIterForkBranches) {
+function addBlockToNetwork(node, currentIterForkBranches, blocksInForkBranches) {
+    //here we need to check if acceptPreBlock is on the latest block or not? if not we use random base to simualte network between branches
+   if(blocksInForkBranches == 0) {
+        var updatedAcceptPreBlockId = longestBlockChain[longestBlockChain.length - 1].blockId;
+        node.acceptPreBlock = updatedAcceptPreBlockId;
+        nodes[node.nodeId].acceptPreBlock = updatedAcceptPreBlockId;
+   } else {
+    var nodeWorkingOnLatestBlock = false; 
+    for(var i = 0; i < forkBranches[forkBranches.length - 1].length; i++) {
+        if(node.acceptPreBlock == forkBranches[forkBranches.length - 1][i].blockId) {
+            nodeWorkingOnLatestBlock = true;
+            break;
+        }
+    }
+    console.log("blocksInForkBranches: " + blocksInForkBranches);
+    console.log("forkBranch: " + forkBranches);
+    console.log("length: " + forkBranches[forkBranches.length - 1].length);
+    if(!nodeWorkingOnLatestBlock) {
+        var updatedIndex = Math.floor((Math.random() * (forkBranches[forkBranches.length - 1].length)) + 1);
+        console.log("updateIndex: " + updatedIndex);
+        for(var j = 0; j < forkBranches.length; j++) {
+            console.log("level: " + j);
+            for(var i = 0; i < forkBranches[j].length; i++) {
+                console.log("blockId: " + forkBranches[j][i].blockId)
+            }
+        }
+        
+        node.acceptPreBlock = forkBranches[forkBranches.length - 1][updatedIndex].blockId;
+        nodes[node.nodeId].acceptPreBlock = forkBranches[forkBranches.length - 1][updatedIndex].blockId;
+    }
+   }
+
     var validBlock = new Block(latestBlockId + 1, node.nodeId, node.acceptPreBlock);
     var perBlock = blockMap.get(node.acceptPreBlock);
     nodes[node.nodeId].acceptPreBlock = latestBlockId + 1; // update the nodeID

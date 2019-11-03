@@ -16,6 +16,7 @@ block map (blockId: blockObject)
 */
 var nodes = [];
 var longestBlockChain = [];
+var doubleSpendingChain = [];
 var forkBranches = [];  // 2d-array
 var blockMap = new Map();
 var initBlock = new Block( -1, -1);
@@ -49,6 +50,7 @@ app.get('/', function(req, res) {
 function blockGenerationLogestChain(){
     //check if we already have fork branch, if so record how many block in fork branch
     var blocksInForkBranches = forkBranches.length;
+    var doubleSpendingLength = doubleSpendingChain.length;
     var currentIterForkBranches = [];
     //each node working on POW check if they get a valid block or not
         //first it need to check which branch to work on. 
@@ -61,7 +63,19 @@ function blockGenerationLogestChain(){
             if(nodes[i].honestOrAttacker == true) { //honest node
                 addBlockToNetwork(nodes[i], currentIterForkBranches, blocksInForkBranches);
             } else { // attacker node
-
+                if(nodes[i].typeOfAttack == "doubleSpending") {
+                    if(doubleSpendingChain.length == 0) {
+                        var attackerBlock = addBlockToNetwork(nodes[i], currentIterForkBranches, blocksInForkBranches);
+                        doubleSpendingChain.push(attackerBlock);
+                    } else if(doubleSpendingChain.length == doubleSpendingLength) {
+                        var newAttackBlock = new Block(latestBlockId + 1, nodes[i].nodeId, nodes[i].acceptPreBlock);
+                        doubleSpendingChain.push(newAttackBlock);
+                        currentIterForkBranches.push(newAttackBlock);
+                        blockMap.set(latestBlockId + 1, newAttackBlock);
+                        latestBlockId += 1;
+                    }
+                    
+                }
             }
         }
 
@@ -69,11 +83,34 @@ function blockGenerationLogestChain(){
     // now one iterations is done we need to check if we have resolved fork branch or not.
     console.log("currentIterForkBranches: " + currentIterForkBranches);
     console.log("before resolved Longest Chain: " + longestBlockChain);
+    console.log("doubleSpendingChain before resolved: " + doubleSpendingChain);
     resolvedLongestChain(blocksInForkBranches, currentIterForkBranches);
+
+    console.log("doubleSpendingChain after resolved: " + doubleSpendingChain);
+    if(doubleSpendingChain.length != doubleSpendingLength) {
+        var indexOfDoubleSpendingBlockOnLongestBlock = 0;
+        for (var i = 0; i < longestBlockChain.length; i++) {
+            if(longestBlockChain[i].blockId == doubleSpendingChain[0].blockId) {
+                indexOfDoubleSpendingBlockOnLongestBlock = i;
+            }
+        }
+        if(doubleSpendingChain.length > forkBranches.length + (longestBlockChain.length - 1 - indexOfDoubleSpendingBlockOnLongestBlock)) {
+            forkBranches = [];
+            longestBlockChain = longestBlockChain.slice(0, indexOfDoubleSpendingBlockOnLongestBlock);
+            for(var i = 0; i < doubleSpendingChain.length; i++) {
+                longestBlockChain.push(doubleSpendingChain[i]);
+            }
+            console.log("cleaning the double spending Chain")
+            doubleSpendingChain = [];
+        }
+    }
+    console.log("doublespendingChain: " + doubleSpendingChain);
     console.log("after resolved Longest Chain: " + longestBlockChain);
 
 
 }
+
+
     /*
         There are main cases:
         1. There are no fork branch before. 
@@ -209,6 +246,7 @@ function addBlockToNetwork(node, currentIterForkBranches, blocksInForkBranches) 
 
     currentIterForkBranches.push(validBlock); // push all the found block in forkBranches
     latestBlockId += 1;
+    return validBlock;
 }
 
 //add N node, depend on numberofNode pass in ex: http://localhost:3000/AddNode?numberOfNode=2
@@ -234,7 +272,7 @@ app.get('/AddNode', function(req, res) {
 app.get('/ChangeNodeParams', function(req, res) {
     var reqNodeId = parseInt(req.query.nodeId);
     var reqProtocol = req.query.protocol;
-    var reqHashRate = parseFloat(req.query.hashRate);
+    var reqHashRate = req.query.hashRate;
     var reqHonestOrAttacker =  req.query.honestOrAttacker;
     var reqTypeOfAttack = req.query.typeOfAttack; 
 
@@ -242,8 +280,8 @@ app.get('/ChangeNodeParams', function(req, res) {
     if(node) {  // if the node is not been delete
         //could have getter of setter to do this
         node.protocol = (reqProtocol == null) ? node.protocol : reqProtocol;
-        node.hashRate = (reqHashRate == null) ? node.hashRate : reqHashRate;
-        node.honestOrAttacker = (reqHonestOrAttacker == null) ? node.honestOrAttacker : (reqHonestOrAttacker == true);
+        node.hashRate = (reqHashRate == undefined) ? node.hashRate : parseFloat(reqHashRate);
+        node.honestOrAttacker = (reqHonestOrAttacker == null) ? node.honestOrAttacker : (reqHonestOrAttacker == 'true');
         if(reqHonestOrAttacker && reqHonestOrAttacker != node.honestOrAttacker) {
             node.honestOrAttacker = reqHonestOrAttacker;    // need to change honestOrAttacker for the node
             if(reqHonestOrAttacker == true) {   
@@ -291,7 +329,7 @@ app.get('/DeleteNode', function(req, res) {
 // acquire network state
 app.get('/AcquireNetworkState', function(req, res){
     blockGenerationLogestChain();
-    res.json({longestChain: longestBlockChain, forkBranches: forkBranches});
+    res.json({longestChain: longestBlockChain, forkBranches: forkBranches, doubleSpendingChain: doubleSpendingChain});
 }) 
 
 app.listen(PORT, function() {

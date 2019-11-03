@@ -1,9 +1,10 @@
 class Block {
 
-    constructor(blockId, ownerNodeId) {
+    constructor(blockId, ownerNodeId, preBlockId) {
         this.blockId = blockId;
+        this.preBlockId = preBlockId;
         this.ownerNodeId = ownerNodeId;
-        this.nextBlock = [];
+        this.nextBlocks = [];
     }
     //Todo could add function for Object 
 }

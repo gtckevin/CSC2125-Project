@@ -5,6 +5,7 @@ class Node {
         this.hashRate = hashRate;
         this.honestOrAttacker = honestOrAttacker;
         this.acceptPreBlock = acceptPreBlock;
+        this.typeOfAttack = null;
     }
     //Todo could add function for Object 
 

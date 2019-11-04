@@ -171,8 +171,6 @@ function blockGenerationLogestChain(){
     }
     console.log("doublespendingChain: " + doubleSpendingChain);
     console.log("after resolved Longest Chain: " + longestBlockChain);
-
-
 }
 
 

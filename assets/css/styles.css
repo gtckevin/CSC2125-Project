@@ -1,0 +1,111 @@
+html {
+	height: 100%;
+	width: 100%;
+	margin: 0;
+}
+
+body {
+    background-color: #eee;
+    margin: 0;
+    font-family: 'Helvetica Neue', Helvetica, sans-serif;
+    text-decoration: none;
+
+    height: 100%;
+    width: 100%;
+}
+
+.main-container {
+	/* Positioning */
+	top: 0;	bottom: 0; left: 0; right: 0;
+	margin: auto;
+	width: 97%;
+	height: 95%;
+	position: absolute;
+
+	overflow: hidden;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	background-color: #fff;
+
+	display: flex;
+}
+
+.left-pane {
+	flex: 0 0 20%;
+	display: flex;
+	flex-direction: column;
+}
+
+.right-pane {
+	flex: 1;
+	box-shadow: inset 5px 0px 15px -5px rgba(0, 0, 0, 0.2)
+}
+
+.param-title {
+	background-color: #5790af;
+	padding: 15px;
+	font-size: 24px;
+	color: #fff;
+	flex: 0 0 auto;
+	cursor: default;
+
+	text-align: center;
+}
+
+.network-title {
+	background-color: #5790af;
+}
+
+.node-title {
+	background-color: #af9657;
+}
+
+.temp-title {
+	background-color: #af5757;
+}
+
+.param-container {
+	overflow-y: auto;
+	flex: 1;
+}
+
+.param-item {
+	padding: 15px;
+	border-bottom: 1px solid #ddd;
+
+	display: flex;
+}
+
+.param-left {
+	flex: 1;
+}
+
+.param-right {
+	flex: 0 0 auto;
+	text-align: center;
+}
+
+.node {
+	background-color: yellow;
+	width: 50px;
+	height: 50px;
+
+	transition: transform .2s ease-in-out;
+	position: absolute;
+}
+
+.node:hover {
+	cursor: pointer;
+	transform: scale(1.1);
+}
+
+.node.selected {
+	background-color: blue;
+}
+
+#temp-node {
+	background-color: black;
+	width: 50px;
+	height: 50px;
+
+	position: absolute;
+}

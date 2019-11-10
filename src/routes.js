@@ -34,7 +34,7 @@ exports.deleteNode = function(req, res) {
 
 exports.changeNodeParams = function(req, res) {
     console.log(req.body);
-    
+
     switch(sim.changeNodeParams(req)) {
         case 200:
             res.status(200).send('Successfully change node param');
@@ -53,7 +53,7 @@ exports.initNetworkParams = function(req, res) {
     console.log(req.body);
 
     /* 
-    ret.body = {
+    req.body = {
         "protocol": "longestChain" | "GHOST" | "DAG",
         "nodeCount": integer,
         "defaultNodeHash": integer,

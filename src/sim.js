@@ -30,8 +30,8 @@ var latestBlockId = -1;
 
 
 exports.addNode = function(req) {
-	var numberOfNode = parseInt(req.query.numberOfNode);
-    console.log(req.query.numberOfNode);
+	var numberOfNode = parseInt(req.body.numberOfNode);
+    console.log(req.body.numberOfNode);
     console.log(numberOfNode);
     var lenOfNodes = nodes.length;
 
@@ -49,11 +49,11 @@ exports.addNode = function(req) {
 }
 
 exports.changeNodeParams = function(req) {
-	var reqNodeId = parseInt(req.query.nodeId);
-    var reqProtocol = req.query.protocol;
-    var reqHashRate = req.query.hashRate;
-    var reqHonestOrAttacker =  req.query.honestOrAttacker;
-    var reqTypeOfAttack = req.query.typeOfAttack; 
+	var reqNodeId = parseInt(req.params.nodeId);
+    var reqProtocol = req.body.protocol;
+    var reqHashRate = req.body.hashRate;
+    var reqHonestOrAttacker =  req.body.honestOrAttacker;
+    var reqTypeOfAttack = req.body.typeOfAttack; 
 
     var node = nodes[reqNodeId];
     if(node) {  // if the node is not been delete
@@ -87,7 +87,7 @@ exports.changeNodeParams = function(req) {
 }
 
 exports.deleteNode = function(req) {
-	var reqNodeId = parseInt(req.query.nodeId);
+	var reqNodeId = parseInt(req.params.nodeId);
 
     var node = nodes[reqNodeId];
     if(node) {

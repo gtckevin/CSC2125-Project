@@ -37,7 +37,10 @@ body {
 
 .right-pane {
 	flex: 1;
-	box-shadow: inset 5px 0px 15px -5px rgba(0, 0, 0, 0.2)
+	box-shadow: inset 5px 0px 15px -5px rgba(0, 0, 0, 0.2);
+
+	display: flex;
+	flex-direction: column;
 }
 
 .param-title {
@@ -73,15 +76,92 @@ body {
 	border-bottom: 1px solid #ddd;
 
 	display: flex;
+	align-items: center;
 }
 
 .param-left {
 	flex: 1;
+	height: 100%;
+	max-width: 70%;
 }
 
 .param-right {
 	flex: 0 0 auto;
 	text-align: center;
+
+	margin: auto;
+	max-width: 50%;
+
+}
+
+.vis {
+	flex: 1;
+}
+
+
+.footer {
+	flex: 0 0 auto;
+
+	width: 100%;
+	height: 100px;
+	background-color: #fff;
+	box-shadow: 0px -15px 15px -16px rgba(0, 0, 0, 0.2);
+
+	display: flex;
+}
+
+.timeline-container {
+	flex: 1;
+	height: 100%;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.button-container {
+	flex: 0 0 auto;
+	height: 100%;
+
+	display: flex;
+	align-items: center;
+
+}
+
+.button {
+	font-size: 72px;
+	cursor: pointer;
+
+	color: #888;
+	transition: all 0.1s ease-in-out;
+
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                       supported by Chrome, Opera and Firefox */
+}
+
+.button:hover {
+	color: #111;
+}
+
+.input-text {
+	width: 50px;
+	padding: 5px;
+	font-size: 16px;
+	text-align: center;
+}
+
+/* Hide arrows from text input field */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0; 
 }
 
 .node {
@@ -108,4 +188,26 @@ body {
 	height: 50px;
 
 	position: absolute;
+}
+
+.param-btn {
+	cursor: pointer;
+	background-color: gray;
+	margin: 10px 50px;
+	padding: 10px;
+	text-align: center;
+
+	transition: all .1s ease-in-out;
+}
+
+.save {
+	background-color: #dadada;
+}
+
+.save:hover {
+	background-color: #cacaca;
+}
+
+.save:active {
+	background-color: #afafaf;
 }

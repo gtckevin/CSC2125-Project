@@ -71,6 +71,10 @@ body {
 	flex: 1;
 }
 
+.param-container.not-exist {
+	overflow: hidden;
+}
+
 .param-item {
 	padding: 15px;
 	border-bottom: 1px solid #ddd;
@@ -79,10 +83,20 @@ body {
 	align-items: center;
 }
 
+.param-item.not-exist {
+	background-image: linear-gradient(180deg, #eaeaea, white, white, white, white));
+	flex-direction: column;
+
+	height:100%;
+}
+
+.param-not-exist {
+	flex: 1;
+}
+
 .param-left {
 	flex: 1;
 	height: 100%;
-	max-width: 70%;
 }
 
 .param-right {
@@ -90,14 +104,11 @@ body {
 	text-align: center;
 
 	margin: auto;
-	max-width: 50%;
-
 }
 
 .vis {
 	flex: 1;
 }
-
 
 .footer {
 	flex: 0 0 auto;
@@ -117,6 +128,40 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.slide-container {
+	width: 100%;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 15px;
+  border-radius: 5px;  
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%; 
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
 }
 
 .button-container {
@@ -165,12 +210,21 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .node {
-	background-color: yellow;
+	background-color: #03bef1;
 	width: 50px;
 	height: 50px;
 
-	transition: transform .2s ease-in-out;
+/*	transition-property: transform, background-color;
+	transition-duration: .2s, .2s;
+	transition-timing-function: ease, ease;*/
+
+	transition: transform .2s ease;
+
 	position: absolute;
+
+	border-radius: 50%; /* the magic */
+	-moz-border-radius: 50%;
+	-webkit-border-radius: 50%;
 }
 
 .node:hover {
@@ -179,13 +233,19 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .node.selected {
-	background-color: blue;
+	box-shadow: 0px 0px 10px 5px #717171cc;
+	border: 2px solid #fff;
+	z-index: 1;
 }
 
 #temp-node {
-	background-color: black;
+	background-color: #a0a0a0;
 	width: 50px;
 	height: 50px;
+
+	border-radius: 50%; /* the magic */
+	-moz-border-radius: 50%;
+	-webkit-border-radius: 50%;
 
 	position: absolute;
 }
@@ -202,6 +262,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .save {
 	background-color: #dadada;
+	color: #000;
 }
 
 .save:hover {
@@ -210,4 +271,10 @@ input[type=number]::-webkit-outer-spin-button {
 
 .save:active {
 	background-color: #afafaf;
+}
+
+.save.inactive {
+	background-color: #efefef;
+	color: #949494;
+	cursor: not-allowed;
 }

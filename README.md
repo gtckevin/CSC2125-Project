@@ -8,6 +8,22 @@
 	* This will automatically call `initNetworkParams()` the first time it's run
 
 ## Updates
+### Nov. 10, 2019
+#### Front-end Changes
+* Added ability to play/pause the visualization
+* Added timeline slider
+	* State at each timestep is currently saved and can be viewed (`console.log(timesteps)`), but visual changes to nodes can't be seen
+	* Parameter changes at each timestep is visible in the left pane
+* Added support for changing node colours
+	* At the moment, every new node just gets assigned a randomly-generated colour; colour means nothing at the moment
+* Changed style of nodes (square to circles, added shadow and border to selected nodes)
+
+##### To-do
+* _Add support for dropdown parameter values (e.g. network protocol)_
+* Apply colour change to nodes based on consensus at each timestep
+* Figure out what to do in the case where you've deleted a node that would've been at a certain timestep when viewing the history
+* Keep track of the colour of nodes at different timesteps
+
 ### Nov. 9, 2019
 #### API Changes
 * addNode: `GET /add` => `POST /nodes`
@@ -35,7 +51,7 @@
 	* Calls `fetchState()` every second (which calls `acquireNetworkState()`) and prints the response to console
 	* Displays the current timestamp
 
-##### To-do:
+##### To-do
 * Add support for dropdown parameter values (e.g. network protocol)
 * Visualize changes at each timestamp; the visualizer currently supports saving updates from each `acquireNetworkState()` call, but doesn't do anything with that data
 * Add the timeline/a way to view the history

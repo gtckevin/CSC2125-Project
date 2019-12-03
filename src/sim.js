@@ -277,7 +277,11 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
                 for(var i = 0; i < forkBranches.length; i++) {
                     for(var j = 0; j < forkBranches[i].length; j++) {
                         if(currentIterForkBranches[0].preBlockId == forkBranches[i][j].blockId) {
-                            forkBranches[i].push(currentIterForkBranches[0]);
+                            if(i == forkBranches.length - 1){
+                                forkBranches.push(currentIterForkBranches[0]);
+                            } else {
+                                forkBranches[i + 1].push(currentIterForkBranches[0]);
+                            }   
                         }
                     }
                 }

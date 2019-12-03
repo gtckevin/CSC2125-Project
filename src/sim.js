@@ -33,12 +33,13 @@ exports.addNode = function(req) {
     var numberOfNode = parseInt(req.body.numberOfNode);
     var reqHashRate = parseFloat(req.body.hashRate); 
     var reqHonestOrAttacker = req.body.attack;
+    var reqLatency = parseInt(req.body.latency);
     console.log(req.body.numberOfNode);
     console.log(numberOfNode);
     var lenOfNodes = nodes.length;
 
     for(var i = 0; i < numberOfNode; i++) {
-        var node = new Node(lenOfNodes + i, longestChain, reqHashRate, reqHonestOrAttacker, -1); // no block yet, set block id to -1
+        var node = new Node(lenOfNodes + i, longestChain, reqHashRate, reqHonestOrAttacker, -1, reqLatency); // no block yet, set block id to -1
         //console.log(nodeObj);
         //var node = {nodeId:lenOfNodes + i, protocol:longestChain, hashRate:defaultHashRate, honestOrAttacker:defalutHonestOrAttacker};
         nodes.push(node);
@@ -56,7 +57,7 @@ exports.changeNodeParams = function(req) {
     var reqHashRate = req.body.hashRate;
     var reqHonestOrAttacker = req.body.attack;
     var reqTypeOfAttack = req.body.typeOfAttack; 
-
+    var reqLatency = parseInt(req.body.latency);
     // Attack set to true; mark as attacker
     // if (req.body.attack) {
     //     reqTypeOfAttack = "doubleSpending";
@@ -69,6 +70,7 @@ exports.changeNodeParams = function(req) {
         node.protocol = (reqProtocol == null) ? node.protocol : reqProtocol;
         node.hashRate = (reqHashRate == undefined) ? node.hashRate : parseFloat(reqHashRate);
         node.honestOrAttacker = (reqHonestOrAttacker == null) ? node.honestOrAttacker : reqHonestOrAttacker;
+        node.latency = reqLatency;
         if(reqHonestOrAttacker && reqHonestOrAttacker != node.honestOrAttacker) {
             node.honestOrAttacker = reqHonestOrAttacker;    // need to change honestOrAttacker for the node
             if(reqHonestOrAttacker == true) {   
@@ -337,7 +339,7 @@ function addBlockToNetwork(node, currentIterForkBranches, blocksInForkBranches) 
     var nodeWorkingOnLatestBlock = false; 
     for(var j = 0; j < forkBranches.length; j++) {
         for(var i = 0; i < forkBranches[j].length; i++) {
-            if(node.acceptPreBlock == forkBranches[forkBranches.length - 1][i].blockId) {
+            if(node.acceptPreBlock == forkBranches[j][i].blockId) {
                 nodeWorkingOnLatestBlock = true;
                 break;
             }
@@ -381,7 +383,7 @@ function addBlockToNetwork(node, currentIterForkBranches, blocksInForkBranches) 
             if(foundLevelHasLatencyZero) {
                 updatedIndex = Math.floor((Math.random() * (forkBranches[levelHasLatencyZero].length)));
                 //console.log("updateIndex: " + updatedIndex);
-                if(forkBranches[forkBranches.length - 1][updatedIndex].latency == 0) {
+                if(forkBranches[levelHasLatencyZero][updatedIndex].latency == 0) {
                     foundAcceptIndex = true;
                 } 
             } else {

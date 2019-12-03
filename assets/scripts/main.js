@@ -423,10 +423,7 @@ function addNode() {
                 data[tempNodeParams[i][1]] = $('#' + tempNodeParams[i][1]).val();
             }
         }
-
-        console.log("Parameters:");
-        console.log(tempNodeParams);
-
+        
         $.ajax({
             url: '/nodes',
             type: 'POST',

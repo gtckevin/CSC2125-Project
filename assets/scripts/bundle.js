@@ -592,10 +592,7 @@ function displayNodeParams(id) {
                 // Update nodeParams
                 for (var i = 0; i < nodeParams[id].length; i++) {
                     if (nodeParams[id][i][1] == "attack") {
-                        console.log("set attack to...");
                         nodeParams[id][i][2] = $('#' + nodeParams[id][i][1]).prop('checked');
-
-                        console.log(nodeParams[id][i][2]);
                     } else {
                         nodeParams[id][i][2] = $('#' + nodeParams[id][i][1]).val();
                     }
@@ -687,18 +684,12 @@ function addNode() {
         for (var i = 0; i < tempNodeParams.length; i++) {
 
             if (tempNodeParams[i][1] == "attack") {
-                console.log("set attack to...");
                 data[tempNodeParams[i][1]] = $('#' + tempNodeParams[i][1]).prop('checked');
-
-                console.log(data[tempNodeParams[i][1]]);
             } else {
                 data[tempNodeParams[i][1]] = $('#' + tempNodeParams[i][1]).val();
             }
         }
-
-        console.log("Parameters:");
-        console.log(tempNodeParams);
-
+        
         $.ajax({
             url: '/nodes',
             type: 'POST',

@@ -24,19 +24,21 @@ var DAG = "DAG";
 
 //Default
 var defaultHashRate = 10;
-var defalutHonestOrAttacker = true;
+var defalutHonestOrAttacker = false;
 var currentNodeLength = 0;
 var latestBlockId = -1;
 
 
 exports.addNode = function(req) {
-	var numberOfNode = parseInt(req.body.numberOfNode);
+    var numberOfNode = parseInt(req.body.numberOfNode);
+    var reqHashRate = req.body.hashRate;
+    var reqHonestOrAttacker = req.body.attack;
     console.log(req.body.numberOfNode);
     console.log(numberOfNode);
     var lenOfNodes = nodes.length;
 
     for(var i = 0; i < numberOfNode; i++) {
-        var node = new Node(lenOfNodes + i, longestChain, defaultHashRate, defalutHonestOrAttacker, -1); // no block yet, set block id to -1
+        var node = new Node(lenOfNodes + i, longestChain, reqHashRate, reqHonestOrAttacker, -1); // no block yet, set block id to -1
         //console.log(nodeObj);
         //var node = {nodeId:lenOfNodes + i, protocol:longestChain, hashRate:defaultHashRate, honestOrAttacker:defalutHonestOrAttacker};
         nodes.push(node);
@@ -52,7 +54,7 @@ exports.changeNodeParams = function(req) {
 	var reqNodeId = parseInt(req.params.nodeId);
     var reqProtocol = req.body.protocol;
     var reqHashRate = req.body.hashRate;
-    var reqHonestOrAttacker = req.body.honestOrAttacker;
+    var reqHonestOrAttacker = req.body.attack;
     var reqTypeOfAttack = req.body.typeOfAttack; 
 
     // Attack set to true; mark as attacker
@@ -154,10 +156,10 @@ function blockGenerationLogestChain(){
         console.log(found);
         // Now we know if we found an block or not base on different type of protocol add valid block or continue to next node
         if(found) {
-            if(nodes[i].honestOrAttacker == true) { //honest node
+            if(nodes[i].honestOrAttacker == false) { //honest node
                 addBlockToNetwork(nodes[i], currentIterForkBranches, blocksInForkBranches);
             } else { // attacker node
-                if(nodes[i].typeOfAttack == "doubleSpending") {
+                //if(nodes[i].typeOfAttack == "doubleSpending") {
                     if(doubleSpendingChain.length == 0) {
                         var attackerBlock = addBlockToNetwork(nodes[i], currentIterForkBranches, blocksInForkBranches);
                         doubleSpendingChain.push(attackerBlock);
@@ -169,15 +171,15 @@ function blockGenerationLogestChain(){
                         latestBlockId += 1;
                     }
                     
-                }
+                //}
             }
         }
 
     }
     // now one iterations is done we need to check if we have resolved fork branch or not.
-    //console.log("currentIterForkBranches: " + currentIterForkBranches);
-    //console.log("before resolved Longest Chain: " + longestBlockChain);
-    //console.log("doubleSpendingChain before resolved: " + doubleSpendingChain);
+    console.log("currentIterForkBranches: " + currentIterForkBranches);
+    console.log("before resolved Longest Chain: " + longestBlockChain);
+    console.log("doubleSpendingChain before resolved: " + doubleSpendingChain);
     resolvedLongestChain(blocksInForkBranches, currentIterForkBranches);
 
     //console.log("doubleSpendingChain after resolved: " + doubleSpendingChain);

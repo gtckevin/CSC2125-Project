@@ -164,7 +164,7 @@ function blockGenerationLogestChain(){
                         var attackerBlock = addBlockToNetwork(nodes[i], currentIterForkBranches, blocksInForkBranches);
                         doubleSpendingChain.push(attackerBlock);
                     } else if(doubleSpendingChain.length == doubleSpendingLength) {
-                        var newAttackBlock = new Block(latestBlockId + 1, nodes[i].nodeId, nodes[i].acceptPreBlock, node[i].latency);
+                        var newAttackBlock = new Block(latestBlockId + 1, nodes[i].nodeId, nodes[i].acceptPreBlock, nodes[i].latency);
                         doubleSpendingChain.push(newAttackBlock);
                         //currentIterForkBranches.push(newAttackBlock);
                         blockMap.set(latestBlockId + 1, newAttackBlock);

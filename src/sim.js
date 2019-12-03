@@ -141,7 +141,9 @@ function blockGenerationLogestChain(){
     //each node working on POW check if they get a valid block or not
         //first it need to check which branch to work on. 
     for(var i = 0; i < nodes.length; i++) {
-
+        if(nodes[i] == null) {
+            continue;
+        }
         var found = blockGenerationLogestChainHonestHelper(nodes[i]);
         console.log(found);
         // Now we know if we found an block or not base on different type of protocol add valid block or continue to next node
@@ -288,6 +290,9 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
 }
 function resetNodesAcceptPreBlock(needResetBlockId, setToBlockId) {
     for(var i = 0; i < nodes.length; i++) {
+        if(nodes[i] == null) {
+            continue;
+        }
         if(nodes[i].acceptPreBlock == needResetBlockId) {
             nodes[i].acceptPreBlock = setToBlockId;
         }
@@ -307,7 +312,7 @@ function currentNodeHashRatioOnCurrentBranch(node) {
     var blockId = node.blockId;
     var totalHashRate = 0;
     for(var i = 0; i < nodes.length; i++) {
-        if(nodes[i] && nodes[i].blockId == blockId) {
+        if(nodes[i] != null && nodes[i].blockId == blockId) {
             totalHashRate += nodes[i].hashRate;
         }
     }

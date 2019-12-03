@@ -164,7 +164,7 @@ function blockGenerationLogestChain(){
                         var attackerBlock = addBlockToNetwork(nodes[i], currentIterForkBranches, blocksInForkBranches);
                         doubleSpendingChain.push(attackerBlock);
                     } else if(doubleSpendingChain.length == doubleSpendingLength) {
-                        var newAttackBlock = new Block(latestBlockId + 1, nodes[i].nodeId, nodes[i].acceptPreBlock);
+                        var newAttackBlock = new Block(latestBlockId + 1, nodes[i].nodeId, nodes[i].acceptPreBlock, node[i].latency);
                         doubleSpendingChain.push(newAttackBlock);
                         //currentIterForkBranches.push(newAttackBlock);
                         blockMap.set(latestBlockId + 1, newAttackBlock);
@@ -203,7 +203,7 @@ function blockGenerationLogestChain(){
     console.log("doublespendingChain: " + doubleSpendingChain);
     console.log("after resolved Longest Chain: " + longestBlockChain);
 }
-
+    
 
     /*
         There are main cases:

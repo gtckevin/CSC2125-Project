@@ -332,9 +332,15 @@ function currentNodeHashRatioOnCurrentBranch(node) {
 function addBlockToNetwork(node, currentIterForkBranches, blocksInForkBranches) {
     //here we need to check if acceptPreBlock is on the latest block or not? if not we use random base to simualte network between branches
    if(blocksInForkBranches == 0) {
-        var updatedAcceptPreBlockId = longestBlockChain[longestBlockChain.length - 1].blockId;
-        node.acceptPreBlock = updatedAcceptPreBlockId;
-        nodes[node.nodeId].acceptPreBlock = updatedAcceptPreBlockId;
+       for(var i = longestBlockChain.length - 1; i >= 0; i--) {
+           if(longestBlockChain[i].latency == 0) {
+                var updatedAcceptPreBlockId = longestBlockChain[longestBlockChain.length - 1].blockId;
+                node.acceptPreBlock = updatedAcceptPreBlockId;
+                nodes[node.nodeId].acceptPreBlock = updatedAcceptPreBlockId;
+                break;
+           }
+       }
+        
    } else {
     var nodeWorkingOnLatestBlock = false; 
     for(var j = 0; j < forkBranches.length; j++) {
@@ -395,9 +401,14 @@ function addBlockToNetwork(node, currentIterForkBranches, blocksInForkBranches) 
             node.acceptPreBlock = forkBranches[forkBranches.length - 1][updatedIndex].blockId;
             nodes[node.nodeId].acceptPreBlock = forkBranches[forkBranches.length - 1][updatedIndex].blockId;
         } else {
-            var updatedAcceptPreBlockId = longestBlockChain[longestBlockChain.length - 1].blockId;
-            node.acceptPreBlock = updatedAcceptPreBlockId;
-            nodes[node.nodeId].acceptPreBlock = updatedAcceptPreBlockId;
+            for(var i = longestBlockChain.length - 1; i >= 0; i--) {
+                if(longestBlockChain[i].latency == 0) {
+                    var updatedAcceptPreBlockId = longestBlockChain[longestBlockChain.length - 1].blockId;
+                    node.acceptPreBlock = updatedAcceptPreBlockId;
+                    nodes[node.nodeId].acceptPreBlock = updatedAcceptPreBlockId;
+                }
+            }
+            
         }   
     }
    }

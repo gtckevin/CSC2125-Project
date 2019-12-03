@@ -971,6 +971,33 @@ function parseChainInfo(state) {
                 }
             }
 
+            for (var i = 0; i < state.doubleSpendingChain.length; i++) {
+                var b = state.doubleSpendingChain[i];
+
+                // Ignore any blocks whose latency is not 0:
+                if (b["latency"] == 0) {
+
+                    if (b["blockId"] > highestBlockId) {
+                        if (currTimestep in blockAppearanceTimes) {
+                            blockAppearanceTimes[JSON.stringify(currTimestep)].push(JSON.stringify(b));
+                        } else {
+                            blockAppearanceTimes[JSON.stringify(currTimestep)] = [JSON.stringify(b)];
+                        }
+
+                        newestHighBlockId = Math.max(newestHighBlockId, b["blockId"]);
+                    }
+
+                    if (b["preBlockId"] == -1) {
+                        blocks[b["blockId"]] = {"block": b, "depth": 0};
+                    } else {
+                        // Depth should be depth of the parent node + 1
+                        blocks[b["blockId"]] = {"block": b, "depth": blocks[b["preBlockId"]]["depth"] + 1};
+                    }
+
+                    maxDepth = Math.max(maxDepth, blocks[b["blockId"]]["depth"]);
+                }    
+            }
+
             highestBlockId = newestHighBlockId;
             break;
 
@@ -1174,6 +1201,8 @@ function renderViewport(s) {
 }
 
 function addBlocks(s) {
+    console.log(s);
+
     // Add all blocks that appeared up until this timestep
     for (var i in blockAppearanceTimes) {
         if (parseInt(i) <= currTimestep) {
@@ -1233,6 +1262,11 @@ function addBlocks(s) {
         } else {
             break;
         }
+    }
+
+    // Add nodes for double-spending chain:
+    for (var i = 0; i < s.doubleSpendingChain.length; i++) {
+
     }
 
     // Colour edges that connect to nodes that are part of the longest chain:

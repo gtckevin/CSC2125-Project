@@ -689,7 +689,7 @@ function addNode() {
                 data[tempNodeParams[i][1]] = $('#' + tempNodeParams[i][1]).val();
             }
         }
-        
+
         $.ajax({
             url: '/nodes',
             type: 'POST',
@@ -1253,11 +1253,6 @@ function addBlocks(s) {
         } else {
             break;
         }
-    }
-
-    // Add nodes for double-spending chain:
-    for (var i = 0; i < s.doubleSpendingChain.length; i++) {
-
     }
 
     // Colour edges that connect to nodes that are part of the longest chain:

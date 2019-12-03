@@ -55,6 +55,8 @@ var timesteps = [];
 // var deletedNodes = [];
 
 var blockAppearanceTimes = {};
+var seenBlocks = [];
+
 var highestBlockId = -1;
 
 $(document).ready(function() {
@@ -630,7 +632,6 @@ function resetBlockOwners() {
 function parseChainInfo(state) {
     switch (timesteps[0]["networkParams"][0][2]) {
         case "Longest Chain":
-            var newestHighBlockId = highestBlockId;
 
             console.log("===========");
             console.log("STEP " + currTimestep);
@@ -642,23 +643,22 @@ function parseChainInfo(state) {
             console.log("adding blocks from longest chain");
 
             // Go through all blocks and add them to "blocks":
-            for (var i = 1; i < state.longestChain.length; i++) {
+            for (var i = 0; i < state.longestChain.length; i++) {
                 // start at 1 to skip block -1
                 var b = state.longestChain[i];
 
                 // Ignore any blocks whose latency is not 0:
-                if (b["latency"] == 0) {
-
-                    if (parseInt(b["blockId"]) > highestBlockId) {
+                if (parseInt(b["latency"]) == 0 && b["blockId"] != -1) {
+                    if (seenBlocks.indexOf(b["blockId"]) == -1) {
                         if (currTimestep in blockAppearanceTimes) {
                             blockAppearanceTimes[JSON.stringify(currTimestep)].push(JSON.stringify(b));
                         } else {
                             blockAppearanceTimes[JSON.stringify(currTimestep)] = [JSON.stringify(b)];
                         }
 
-                        console.log(b);
+                        seenBlocks.push(b["blockId"]);
 
-                        newestHighBlockId = Math.max(newestHighBlockId, b["blockId"]);
+                        console.log(b);
                     }
                 }                
             }
@@ -670,18 +670,18 @@ function parseChainInfo(state) {
                 for (var j = 0; j < state.forkBranches[i].length; j++) {
                     var b = state.forkBranches[i][j];
 
-                    if (b["latency"] == 0) {
+                    if (parseInt(b["latency"]) == 0 && b["blockId"] != -1) {
 
-                        if (parseInt(b["blockId"]) > highestBlockId) {
+                        if (seenBlocks.indexOf(b["blockId"]) == -1) {
                             if (currTimestep in blockAppearanceTimes) {
                                 blockAppearanceTimes[JSON.stringify(currTimestep)].push(JSON.stringify(b));
                             } else {
                                 blockAppearanceTimes[JSON.stringify(currTimestep)] = [JSON.stringify(b)];
                             }
 
-                            console.log(b);
+                            seenBlocks.push(b["blockId"]);
 
-                            newestHighBlockId = Math.max(newestHighBlockId, b["blockId"]);
+                            console.log(b);
                         }
                     }
                 }
@@ -693,24 +693,27 @@ function parseChainInfo(state) {
             for (var i = 0; i < state.doubleSpendingChain.length; i++) {
                 var b = state.doubleSpendingChain[i];
 
-                // Ignore any blocks whose latency is not 0:
-                if (b["latency"] == 0) {
+                console.log("> looking at...");
+                console.log(b);
 
-                    if (parseInt(b["blockId"]) > highestBlockId) {
+                // Ignore any blocks whose latency is not 0:
+                if (parseInt(b["latency"]) == 0 && b["blockId"] != -1) {
+                    console.log("passed latency check");
+
+                    // if (parseInt(b["blockId"]) > highestBlockId) {
+                    if (seenBlocks.indexOf(b["blockId"]) == -1) {
+                        console.log("passed blockID check")
                         if (currTimestep in blockAppearanceTimes) {
                             blockAppearanceTimes[JSON.stringify(currTimestep)].push(JSON.stringify(b));
                         } else {
                             blockAppearanceTimes[JSON.stringify(currTimestep)] = [JSON.stringify(b)];
                         }
 
+                        seenBlocks.push(b["blockId"]);
                         console.log(b);
-
-                        newestHighBlockId = Math.max(newestHighBlockId, b["blockId"]);
                     }
-                }    
+                }
             }
-
-            highestBlockId = newestHighBlockId;
 
             console.log("-----------");
             console.log("OUTPUT:");
@@ -897,7 +900,8 @@ function renderViewport(s) {
 }
 
 function addBlocks(s) {
-    console.log(s);
+    // console.log(s);
+    // console.log(blockAppearanceTimes);
 
     // Add all blocks that appeared up until this timestep
     for (var i in blockAppearanceTimes) {

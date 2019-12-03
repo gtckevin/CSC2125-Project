@@ -31,7 +31,7 @@ var latestBlockId = -1;
 
 exports.addNode = function(req) {
     var numberOfNode = parseInt(req.body.numberOfNode);
-    var reqHashRate = req.body.hashRate;
+    var reqHashRate = parseFloat(req.body.hashRate); 
     var reqHonestOrAttacker = req.body.attack;
     console.log(req.body.numberOfNode);
     console.log(numberOfNode);
@@ -153,7 +153,7 @@ function blockGenerationLogestChain(){
             continue;
         }
         var found = blockGenerationLogestChainHonestHelper(nodes[i]);
-        console.log(found);
+        console.log("found: " + found);
         // Now we know if we found an block or not base on different type of protocol add valid block or continue to next node
         if(found) {
             if(nodes[i].honestOrAttacker == false) { //honest node

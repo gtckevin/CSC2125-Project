@@ -118,6 +118,7 @@ exports.deleteNode = function(req) {
 
 exports.acquireNetworkState = function(req) {
     reduceLatncy();
+    //quickResolvedLongestChain();
 	blockGenerationLogestChain();
 	return {longestChain: longestBlockChain, forkBranches: forkBranches, doubleSpendingChain: doubleSpendingChain};
 }
@@ -217,9 +218,9 @@ function blockGenerationLogestChain(){
 
     }
     // now one iterations is done we need to check if we have resolved fork branch or not.
-    console.log("currentIterForkBranches: " + currentIterForkBranches);
-    console.log("before resolved Longest Chain: " + longestBlockChain);
-    console.log("doubleSpendingChain before resolved: " + doubleSpendingChain);
+    //console.log("currentIterForkBranches: " + currentIterForkBranches);
+    //console.log("before resolved Longest Chain: " + longestBlockChain);
+    //console.log("doubleSpendingChain before resolved: " + doubleSpendingChain);
     resolvedLongestChain(blocksInForkBranches, currentIterForkBranches);
 
     //console.log("doubleSpendingChain after resolved: " + doubleSpendingChain);
@@ -236,12 +237,12 @@ function blockGenerationLogestChain(){
             for(var i = 0; i < doubleSpendingChain.length; i++) {
                 longestBlockChain.push(doubleSpendingChain[i]);
             }
-            console.log("cleaning the double spending Chain")
+            //console.log("cleaning the double spending Chain")
             doubleSpendingChain = [];
         }
     }
-    console.log("doublespendingChain: " + doubleSpendingChain);
-    console.log("after resolved Longest Chain: " + longestBlockChain);
+    //console.log("doublespendingChain: " + doubleSpendingChain);
+    //console.log("after resolved Longest Chain: " + longestBlockChain);
 }
     
 
@@ -273,13 +274,18 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
     } else { // Case 2
         // Case 2.1
         if(currentIterForkBranches.length == 1) { 
+            console.log("in 2.1");
             if(currentIterForkBranches[0].latency > 0) {
                 for(var i = 0; i < forkBranches.length; i++) {
                     for(var j = 0; j < forkBranches[i].length; j++) {
                         if(currentIterForkBranches[0].preBlockId == forkBranches[i][j].blockId) {
                             if(i == forkBranches.length - 1){
-                                forkBranches.push(currentIterForkBranches[0]);
+                                console.log("======== Not Here!");
+                                forkBranches.push([]);
+                                forkBranches[forkBranches.length - 1].push(currentIterForkBranches);
+                                //forkBranches[forkBranches.length].push(currentIterForkBranches);
                             } else {
+                                console.log("================ Here!!");
                                 forkBranches[i + 1].push(currentIterForkBranches[0]);
                             }   
                         }
@@ -319,6 +325,7 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
             forkBranches = []; //reset the forkBranches
         } else {
             // Case 2.2
+            console.log("in 2.2");
             var blockWithLathcyZero = [];
             if(currentIterForkBranches.length != 0) {
                 for(var i = 0; i < currentIterForkBranches.length; i++) {
@@ -326,7 +333,13 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
                         for(var i = 0; i < forkBranches.length; i++) {
                             for(var j = 0; j < forkBranches[i].length; j++) {
                                 if(currentIterForkBranches[0].preBlockId == forkBranches[i][j].blockId) {
-                                    forkBranches[i].push(currentIterForkBranches[0]);
+                                    if(i == forkBranches.length - 1) {
+                                        forkBranches.push([]);
+                                        forkBranches[forkBranches.length - 1].push(currentIterForkBranches[0]);
+                                    } else {
+                                        forkBranches[i + 1].push(currentIterForkBranches[0]);
+                                    }
+                                    
                                 }
                             }
                         }
@@ -394,9 +407,9 @@ function addBlockToNetwork(node, currentIterForkBranches, blocksInForkBranches) 
         }
     }
     
-    console.log("blocksInForkBranches: " + blocksInForkBranches);
-    console.log("forkBranch: " + forkBranches);
-    console.log("length: " + forkBranches[forkBranches.length - 1].length);
+    //console.log("blocksInForkBranches: " + blocksInForkBranches);
+    //console.log("forkBranch: " + forkBranches);
+    //console.log("length: " + forkBranches[forkBranches.length - 1].length);
     if(!nodeWorkingOnLatestBlock) {
         //If the block has latency then we should not consider it.
         var foundAcceptIndex = false;

@@ -636,14 +636,14 @@ function parseChainInfo(state) {
     switch (timesteps[0]["networkParams"][0][2]) {
         case "Longest Chain":
 
-            // console.log("===========");
-            // console.log("STEP " + currTimestep);
+            console.log("===========");
+            console.log("STEP " + currTimestep);
 
-            // console.log("STATE:");
-            // console.log(state);
+            console.log("STATE:");
+            console.log(state);
 
-            // console.log("-----------");
-            // console.log("adding blocks from longest chain");
+            console.log("-----------");
+            console.log("adding blocks from longest chain");
 
             // Go through all blocks and add them to "blocks":
             for (var i = 0; i < state.longestChain.length; i++) {
@@ -661,13 +661,13 @@ function parseChainInfo(state) {
 
                         seenBlocks.push(b["blockId"]);
 
-                        // console.log(b);
+                        console.log(b);
                     }
                 }                
             }
 
-            // console.log("-----------");
-            // console.log("adding blocks from forkbranches");
+            console.log("-----------");
+            console.log("adding blocks from forkbranches");
 
             for (var i = 0; i < state.forkBranches.length; i++) {
                 for (var j = 0; j < state.forkBranches[i].length; j++) {
@@ -684,20 +684,20 @@ function parseChainInfo(state) {
 
                             seenBlocks.push(b["blockId"]);
 
-                            // console.log(b);
+                            console.log(b);
                         }
                     }
                 }
             }
 
-            // console.log("-----------");
-            // console.log("adding blocks from double spending chain");
+            console.log("-----------");
+            console.log("adding blocks from double spending chain");
 
             for (var i = 0; i < state.doubleSpendingChain.length; i++) {
                 var b = state.doubleSpendingChain[i];
 
-                // console.log("> looking at...");
-                // console.log(b);
+                console.log("> looking at...");
+                console.log(b);
 
                 // Ignore any blocks whose latency is not 0:
                 if (parseInt(b["latency"]) == 0 && b["blockId"] != -1) {
@@ -718,9 +718,9 @@ function parseChainInfo(state) {
                 }
             }
 
-            // console.log("-----------");
-            // console.log("OUTPUT:");
-            // console.log(blockAppearanceTimes);
+            console.log("-----------");
+            console.log("OUTPUT:");
+            console.log(blockAppearanceTimes);
 
             break;
 
@@ -951,18 +951,23 @@ function addBlocks(s) {
                 var b = JSON.parse(currSet[j]);
 
                 if (b["preBlockId"] != -1) {
-                    cy.add([ 
-                        { 
-                            group: 'edges', 
-                            data: { 
-                                source: b["preBlockId"],
-                                target: b["blockId"]
-                            },
-                            style: {
-                                'line-color': '#e8e8e8'
-                            }
-                        } 
-                    ]);
+                    // If source or target node doesn't exist, just don't add the edge:
+                    try {
+                        cy.add([ 
+                            { 
+                                group: 'edges', 
+                                data: { 
+                                    source: b["preBlockId"],
+                                    target: b["blockId"]
+                                },
+                                style: {
+                                    'line-color': '#e8e8e8'
+                                }
+                            } 
+                        ]);
+                    } catch (err) {
+                        console.log("Source or target node doesn't exist");
+                    }
                 }
             }
         } else {

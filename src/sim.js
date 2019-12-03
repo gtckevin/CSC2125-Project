@@ -123,6 +123,44 @@ exports.acquireNetworkState = function(req) {
 }
 
 //helper functions
+function quickResolvedLongestChain() {
+    var countNonLatencyNode = 0;
+    var currentBlock;
+    for(var i = 0; i < longestBlockChain[longestBlockChain.length - 1].length; i++) {
+        if(longestBlockChain[longestBlockChain.length - 1][i].latency == 0) {
+            countNonLatencyNode++;
+            currentBlock = longestBlockChain[longestBlockChain.length - 1][i];
+        }
+    }
+    if(countNonLatencyNode == 1) {
+        var subLongestChain = [];
+        subLongestChain.push(currentBlock);
+            for(var i = forkBranches.length - 1; i >= 0; i--) {
+                for(var j = 0; j < forkBranches[i].length; j++) {
+                    if(forkBranches[i][j].blockId == currentBlock.preBlockId) { // find parenters of current subBlock, add to array that need to add to longest chain
+                        currentBlock = forkBranches[i][j];
+                        subLongestChain.push(currentBlock);
+                        break;
+                    } else { 
+
+                    }
+                    // delete this block from forkBranches and set any node working on this branch to the newest blockID(currentIterForkBranches[0].blockId)
+                    resetNodesAcceptPreBlock(forkBranches[i][j].blockId, currentBlock.blockId);
+                    // delete this block from blockMap
+                    blockMap.delete(forkBranches[i][j].blockId)
+                    //forkBranches[i].splice(j, 1);
+                    //j++;
+                }
+            }
+            subLongestChain.reverse();
+            // Now subLongestChain contain all the block need to add to longest chain
+            for(var i = 0; i < subLongestChain.length; i++) {
+                longestBlockChain[longestBlockChain.length - 1].nextBlocks = [subLongestChain[i]]; // reset the last block in longestchain's nextBlocks
+                longestBlockChain.push(subLongestChain[i]);
+            }
+            forkBranches = []; //reset the forkBranches
+    }
+}
 function reduceLatncy() {
     for(var i = 0; i < longestBlockChain.length; i++) {
         if(longestBlockChain[i].latency > 0) {
@@ -398,8 +436,8 @@ function addBlockToNetwork(node, currentIterForkBranches, blocksInForkBranches) 
         }
 
         if(foundLevelHasLatencyZero) {
-            node.acceptPreBlock = forkBranches[forkBranches.length - 1][updatedIndex].blockId;
-            nodes[node.nodeId].acceptPreBlock = forkBranches[forkBranches.length - 1][updatedIndex].blockId;
+            node.acceptPreBlock = forkBranches[levelHasLatencyZero][updatedIndex].blockId;
+            nodes[node.nodeId].acceptPreBlock = forkBranches[levelHasLatencyZero][updatedIndex].blockId;
         } else {
             for(var i = longestBlockChain.length - 1; i >= 0; i--) {
                 if(longestBlockChain[i].latency == 0) {

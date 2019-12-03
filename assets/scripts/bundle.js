@@ -896,71 +896,65 @@ function resetBlockOwners() {
 function parseChainInfo(state) {
     switch (timesteps[0]["networkParams"][0][2]) {
         case "Longest Chain":
-            var blocks = {};
-            var maxDepth = -1;
-
             var newestHighBlockId = highestBlockId;
+
+            console.log("===========");
+            console.log("STEP " + currTimestep);
+
+            console.log("STATE:");
+            console.log(state);
+
+            console.log("-----------");
+            console.log("adding blocks from longest chain");
 
             // Go through all blocks and add them to "blocks":
             for (var i = 1; i < state.longestChain.length; i++) {
                 // start at 1 to skip block -1
                 var b = state.longestChain[i];
 
-                b["inLongestChain"] = true;
-
                 // Ignore any blocks whose latency is not 0:
                 if (b["latency"] == 0) {
 
-                    if (b["blockId"] > highestBlockId) {
+                    if (parseInt(b["blockId"]) > highestBlockId) {
                         if (currTimestep in blockAppearanceTimes) {
                             blockAppearanceTimes[JSON.stringify(currTimestep)].push(JSON.stringify(b));
                         } else {
                             blockAppearanceTimes[JSON.stringify(currTimestep)] = [JSON.stringify(b)];
                         }
 
+                        console.log(b);
+
                         newestHighBlockId = Math.max(newestHighBlockId, b["blockId"]);
                     }
-
-                    if (b["preBlockId"] == -1) {
-                        blocks[b["blockId"]] = {"block": b, "depth": 0};
-                    } else {
-                        // Depth should be depth of the parent node + 1
-                        blocks[b["blockId"]] = {"block": b, "depth": blocks[b["preBlockId"]]["depth"] + 1};
-                    }
-
-                    maxDepth = Math.max(maxDepth, blocks[b["blockId"]]["depth"]);
                 }                
             }
+
+            console.log("-----------");
+            console.log("adding blocks from forkbranches");
 
             for (var i = 0; i < state.forkBranches.length; i++) {
                 for (var j = 0; j < state.forkBranches[i].length; j++) {
                     var b = state.forkBranches[i][j];
 
-                    b["inLongestChain"] = false;
-
                     if (b["latency"] == 0) {
 
-                        if (b["blockId"] > highestBlockId) {
+                        if (parseInt(b["blockId"]) > highestBlockId) {
                             if (currTimestep in blockAppearanceTimes) {
                                 blockAppearanceTimes[JSON.stringify(currTimestep)].push(JSON.stringify(b));
                             } else {
                                 blockAppearanceTimes[JSON.stringify(currTimestep)] = [JSON.stringify(b)];
                             }
 
+                            console.log(b);
+
                             newestHighBlockId = Math.max(newestHighBlockId, b["blockId"]);
                         }
-
-                        if (b["preBlockId"] == -1) {
-                            blocks[b["blockId"]] = {"block": b, "depth": 0};
-                        } else {
-                            // Depth should be depth of the parent node + 1
-                            blocks[b["blockId"]] = {"block": b, "depth": blocks[b["preBlockId"]]["depth"] + 1};
-                        }
-
-                        maxDepth = Math.max(maxDepth, blocks[b["blockId"]]["depth"]);
                     }
                 }
             }
+
+            console.log("-----------");
+            console.log("adding blocks from double spending chain");
 
             for (var i = 0; i < state.doubleSpendingChain.length; i++) {
                 var b = state.doubleSpendingChain[i];
@@ -968,28 +962,26 @@ function parseChainInfo(state) {
                 // Ignore any blocks whose latency is not 0:
                 if (b["latency"] == 0) {
 
-                    if (b["blockId"] > highestBlockId) {
+                    if (parseInt(b["blockId"]) > highestBlockId) {
                         if (currTimestep in blockAppearanceTimes) {
                             blockAppearanceTimes[JSON.stringify(currTimestep)].push(JSON.stringify(b));
                         } else {
                             blockAppearanceTimes[JSON.stringify(currTimestep)] = [JSON.stringify(b)];
                         }
 
+                        console.log(b);
+
                         newestHighBlockId = Math.max(newestHighBlockId, b["blockId"]);
                     }
-
-                    if (b["preBlockId"] == -1) {
-                        blocks[b["blockId"]] = {"block": b, "depth": 0};
-                    } else {
-                        // Depth should be depth of the parent node + 1
-                        blocks[b["blockId"]] = {"block": b, "depth": blocks[b["preBlockId"]]["depth"] + 1};
-                    }
-
-                    maxDepth = Math.max(maxDepth, blocks[b["blockId"]]["depth"]);
                 }    
             }
 
             highestBlockId = newestHighBlockId;
+
+            console.log("-----------");
+            console.log("OUTPUT:");
+            console.log(blockAppearanceTimes);
+
             break;
 
         case "GHOST":
@@ -1142,12 +1134,6 @@ function onSliderClick() {
     }
 
     console.log("Time: " + currTimestep + "/" + maxTimestep);
-    // console.log("Deleted at this point:");
-
-    // var d = getNodesDeletedBefore(currTimestep);
-    // for (var i = 0; i < d.length; i++) {
-    //     console.log("\t[" + d[i]["time"] + '] node-' + d[i]["id"]);
-    // }
 
     // Update parameter list to match info at current timestep
     var headerText = $(paramHeader).text();
@@ -1160,21 +1146,6 @@ function onSliderClick() {
 
     renderBranchState();
 }
-
-// Return a list of nodes that were deleted before time
-// function getNodesDeletedBefore(t) {
-//     var l = [];
-
-//     for (var i = 0; i < deletedNodes.length; i++) {
-//         if (deletedNodes[i]["time"] > t) {
-//             return l;
-//         }
-
-//         l.push(deletedNodes[i]);
-//     }
-
-//     return l;
-// }
 
 
 

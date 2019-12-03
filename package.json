@@ -19,6 +19,9 @@
   "homepage": "https://github.com/gtckevin/CSC2125-Project#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
+    "browserify": "^16.5.0",
+    "cytoscape": "^3.12.1",
+    "cytoscape-dagre": "^2.2.2",
     "ejs": "^2.7.1",
     "express": "^4.17.1"
   }

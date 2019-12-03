@@ -1,4 +1,7 @@
 "use strict";
+var cytoscape = require('cytoscape');
+var dagre = require('cytoscape-dagre');
+var cy;
 
 var tempNode = null;
 
@@ -24,7 +27,7 @@ var maxTimestep = 0;
 
 var currSaveBtn = null;
 
-var nodeColours = [];
+var defaultColour = {r: 210, g: 210, b: 210};
 
 // networkParams = [[name, id, inputVal, inputType, enabled], [], ...]
 // Specify default values by modifying networkParams[i][2]
@@ -37,7 +40,7 @@ var networkParams = [
     ["Generation Time", "blockGenerationTime", 0, "text", true]
 ];
 
-// nodeParams = { "nodeId": [[name, id, inputVal, inputType, enabled], ...], ...}
+// nodeParams = { "nodeId": [[name, id, inputVal, inputType, enabled, branch], ...], ...}
 var nodeParams = {};
 var tempNodeParams = [
     ["Attack", "attack", "None", "dropdown", true],
@@ -49,7 +52,10 @@ var tempNodeParams = [
 var timesteps = [];
 
 // [{"time": 0, "id": 123}]
-var deletedNodes = [];
+// var deletedNodes = [];
+
+var blockAppearanceTimes = {};
+var highestBlockId = -1;
 
 $(document).ready(function() {
     paramHeader = $('.param-title');
@@ -120,15 +126,60 @@ $(document).ready(function() {
     // Debugging:
     $(document).on('keypress', function(e) {
         if (e.which == 122) {
-            generateNodeColour();
+
         }
         if (e.which == 120) {
-            
+
         }
         if (e.which == 99) {
-            
+
+        }
+        if (e.which == 32) {
+
         }
     })
+
+
+    // CYTOSCAPE STUFF
+    cytoscape.use( dagre );
+    cy = cytoscape({
+        container: document.getElementById('cy'), // container to render in
+
+        style: [ // the stylesheet for the graph
+        {
+          selector: 'node',
+          style: {
+            'label': 'data(id)',
+            'shape': 'rectangle'
+          }
+        },
+
+        {
+          selector: 'edge',
+          style: {
+            'width': 3,
+            'line-color': '#ccc',
+            'target-arrow-color': '#ccc',
+            'target-arrow-shape': 'triangle'
+          }
+        }
+        ],
+
+        layout: {
+            name: 'dagre',
+            rankDir: 'LR',
+            fit: true
+        },
+        autoungrabify: true,
+        wheelSensitivity: 0.2
+    });
+
+    cy.on('tap', 'node', function(evt){ 
+        var owner = evt.target.data("owner");
+
+        // Check if node still exists:
+        $('#node-' + owner).trigger("click");
+    });
 })
 
 
@@ -387,9 +438,11 @@ function addNode() {
                 containment: ".vis"
             });
 
-            // Temporarily make a new colour and add it to the node:
-            var newColour = generateNodeColour();
-            $('#node-' + newNode.nodeId).css("background-color", RGBtoString(newColour));
+            // Assign it the default colour:
+             var newColour = generateNodeColour();
+            //var newColour = defaultColour;
+            setNodeColour(newNode.nodeId, RGBtoString(newColour));
+
             tempNode = null;
 
             // Update node params:
@@ -406,7 +459,7 @@ function addNode() {
 
 // DELETE /nodes/id
 function deleteNode(id) {
-    deletedNodes.push({"time": maxTimestep, "id": id.split("-")[1]});
+    // deletedNodes.push({"time": maxTimestep, "id": id.split("-")[1]});
 
     $.ajax({
         url: '/nodes/' + id.split("-")[1],
@@ -454,9 +507,7 @@ function generateNodeColour() {
     h %= 1;
 
     // Add to list of colours
-    nodeColours.push(HSVtoRGB(h, 0.5, 0.95));
-
-    return nodeColours[nodeColours.length - 1];
+    return HSVtoRGB(h, 0.5, 0.95);
 }
 
 // Source: https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately
@@ -533,6 +584,105 @@ function initNetworkParams() {
     });
 }
 
+function setAsBlockOwner(id) {
+    $('#node-' + id).addClass('block-owner');
+}
+
+function resetBlockOwners() {
+    var owners = $('.block-owner');
+
+    for (var i = 0; i < owners.length; i++) {
+        $(owners[i]).removeClass('block-owner');
+    }
+}
+
+function parseChainInfo(state) {
+    switch (timesteps[0]["networkParams"][0][2]) {
+        case "Longest Chain":
+            var blocks = {};
+            var maxDepth = -1;
+
+            var newestHighBlockId = highestBlockId;
+
+            // Go through all blocks and add them to "blocks":
+            for (var i = 1; i < state.longestChain.length; i++) {
+                // start at 1 to skip block -1
+                var b = state.longestChain[i];
+
+                b["inLongestChain"] = true;
+
+                // Ignore any blocks whose latency is not 0:
+                if (b["latency"] == 0) {
+
+                    if (b["blockId"] > highestBlockId) {
+                        if (currTimestep in blockAppearanceTimes) {
+                            blockAppearanceTimes[JSON.stringify(currTimestep)].push(JSON.stringify(b));
+                        } else {
+                            blockAppearanceTimes[JSON.stringify(currTimestep)] = [JSON.stringify(b)];
+                        }
+
+                        newestHighBlockId = Math.max(newestHighBlockId, b["blockId"]);
+                    }
+
+                    if (b["preBlockId"] == -1) {
+                        blocks[b["blockId"]] = {"block": b, "depth": 0};
+                    } else {
+                        // Depth should be depth of the parent node + 1
+                        blocks[b["blockId"]] = {"block": b, "depth": blocks[b["preBlockId"]]["depth"] + 1};
+                    }
+
+                    maxDepth = Math.max(maxDepth, blocks[b["blockId"]]["depth"]);
+                }                
+            }
+
+            for (var i = 0; i < state.forkBranches.length; i++) {
+                for (var j = 0; j < state.forkBranches[i].length; j++) {
+                    var b = state.forkBranches[i][j];
+
+                    b["inLongestChain"] = false;
+
+                    if (b["latency"] == 0) {
+
+                        if (b["blockId"] > highestBlockId) {
+                            if (currTimestep in blockAppearanceTimes) {
+                                blockAppearanceTimes[JSON.stringify(currTimestep)].push(JSON.stringify(b));
+                            } else {
+                                blockAppearanceTimes[JSON.stringify(currTimestep)] = [JSON.stringify(b)];
+                            }
+
+                            newestHighBlockId = Math.max(newestHighBlockId, b["blockId"]);
+                        }
+
+                        if (b["preBlockId"] == -1) {
+                            blocks[b["blockId"]] = {"block": b, "depth": 0};
+                        } else {
+                            // Depth should be depth of the parent node + 1
+                            blocks[b["blockId"]] = {"block": b, "depth": blocks[b["preBlockId"]]["depth"] + 1};
+                        }
+
+                        maxDepth = Math.max(maxDepth, blocks[b["blockId"]]["depth"]);
+                    }
+                }
+            }
+
+            highestBlockId = newestHighBlockId;
+            break;
+
+        case "GHOST":
+            break;
+
+        default:
+            break;
+    }
+
+    renderBranchState();
+}
+
+function renderBranchState() {
+    // Grab branch info for current timestep:
+    renderViewport(timesteps[currTimestep]["state"]);
+}
+
 // GET /network
 function fetchState() {
     if (playEnabled) {
@@ -559,6 +709,7 @@ function fetchState() {
             .done(function(res) {
                 // Update state to include this next time step
                 newTimestep["state"] = res;
+                parseChainInfo(res);
             })
             .fail(function(jqXHR, textStatus) {
                 console.log("Init failed: " + textStatus);
@@ -667,12 +818,12 @@ function onSliderClick() {
     }
 
     console.log("Time: " + currTimestep + "/" + maxTimestep);
-    console.log("Deleted at this point:");
+    // console.log("Deleted at this point:");
 
-    var d = getNodesDeletedBefore(currTimestep);
-    for (var i = 0; i < d.length; i++) {
-        console.log("\t[" + d[i]["time"] + '] node-' + d[i]["id"]);
-    }
+    // var d = getNodesDeletedBefore(currTimestep);
+    // for (var i = 0; i < d.length; i++) {
+    //     console.log("\t[" + d[i]["time"] + '] node-' + d[i]["id"]);
+    // }
 
     // Update parameter list to match info at current timestep
     var headerText = $(paramHeader).text();
@@ -682,19 +833,122 @@ function onSliderClick() {
     } else {
         displayNetworkParams();
     }
+
+    renderBranchState();
 }
 
 // Return a list of nodes that were deleted before time
-function getNodesDeletedBefore(t) {
-    var l = [];
+// function getNodesDeletedBefore(t) {
+//     var l = [];
 
-    for (var i = 0; i < deletedNodes.length; i++) {
-        if (deletedNodes[i]["time"] > t) {
-            return l;
+//     for (var i = 0; i < deletedNodes.length; i++) {
+//         if (deletedNodes[i]["time"] > t) {
+//             return l;
+//         }
+
+//         l.push(deletedNodes[i]);
+//     }
+
+//     return l;
+// }
+
+
+
+
+/***************************
+*   CYTOSCAPE FUNCTIONS    *
+****************************/
+
+function renderViewport(s) {
+    // Erase the graph:
+    cy.remove('node');
+    cy.remove('edge');
+
+    addBlocks(s);
+}
+
+function addBlocks(s) {
+    // Add all blocks that appeared up until this timestep
+    for (var i in blockAppearanceTimes) {
+        if (parseInt(i) <= currTimestep) {
+            var currSet = blockAppearanceTimes[i];
+            for (var j = 0; j < currSet.length; j++) {
+                var b = JSON.parse(currSet[j]);
+
+                if (b["latency"] == 0) {
+                    cy.add([ 
+                        { 
+                            group: 'nodes', 
+                            data: { 
+                                id: b["blockId"],
+                                pre: b["preBlockId"],
+                                owner: b["ownerNodeId"]
+                            },
+                            style: {
+                                'background-color': function(ele){ 
+                                    if ($('#node-' + b["ownerNodeId"]).length) {
+                                        return $('#node-' + b["ownerNodeId"]).css("background-color"); 
+                                    } else {
+                                        return '#a3a3a3';
+                                    }
+                                }
+                            }
+                        } 
+                    ]);
+                }
+            }
+        } else {
+            break;
         }
-
-        l.push(deletedNodes[i]);
     }
 
-    return l;
+    // Add edges between all nodes:
+    for (var i in blockAppearanceTimes) {
+        if (parseInt(i) <= currTimestep) {
+            var currSet = blockAppearanceTimes[i];
+            for (var j = 0; j < currSet.length; j++) {
+                var b = JSON.parse(currSet[j]);
+
+                if (b["preBlockId"] != -1) {
+                    cy.add([ 
+                        { 
+                            group: 'edges', 
+                            data: { 
+                                source: b["preBlockId"],
+                                target: b["blockId"]
+                            },
+                            style: {
+                                'line-color': '#e8e8e8'
+                            }
+                        } 
+                    ]);
+                }
+            }
+        } else {
+            break;
+        }
+    }
+
+    // Colour edges that connect to nodes that are part of the longest chain:
+    for (var i = 0; i < s.longestChain.length; i++) {
+        var b = s.longestChain[i];
+
+        if (b["latency"] == 0) {
+            var target = cy.edges('[target = "' + b["blockId"] + '"]');
+
+            cy.$(target)
+                .css("line-color", '#828282');
+        }
+    }
+
+    cy.layout({
+        name: 'dagre',
+        rankDir: 'LR',
+        fit: true
+    }).run();
+}
+
+
+function centerViewport() {
+    cy.fit();
 }

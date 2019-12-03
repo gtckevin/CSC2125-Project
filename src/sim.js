@@ -58,17 +58,17 @@ exports.changeNodeParams = function(req) {
     var reqTypeOfAttack = req.body.typeOfAttack; 
 
     // Attack set to true; mark as attacker
-    if (req.body.attack) {
-        reqTypeOfAttack = "doubleSpending";
-        reqHonestOrAttacker = false;
-    }
+    // if (req.body.attack) {
+    //     reqTypeOfAttack = "doubleSpending";
+    //     reqHonestOrAttacker = false;
+    // }
 
     var node = nodes[reqNodeId];
     if(node) {  // if the node is not been delete
         //could have getter of setter to do this
         node.protocol = (reqProtocol == null) ? node.protocol : reqProtocol;
         node.hashRate = (reqHashRate == undefined) ? node.hashRate : parseFloat(reqHashRate);
-        node.honestOrAttacker = (reqHonestOrAttacker == null) ? node.honestOrAttacker : (reqHonestOrAttacker == 'true');
+        node.honestOrAttacker = (reqHonestOrAttacker == null) ? node.honestOrAttacker : reqHonestOrAttacker;
         if(reqHonestOrAttacker && reqHonestOrAttacker != node.honestOrAttacker) {
             node.honestOrAttacker = reqHonestOrAttacker;    // need to change honestOrAttacker for the node
             if(reqHonestOrAttacker == true) {   
@@ -166,7 +166,7 @@ function blockGenerationLogestChain(){
                     } else if(doubleSpendingChain.length == doubleSpendingLength) {
                         var newAttackBlock = new Block(latestBlockId + 1, nodes[i].nodeId, nodes[i].acceptPreBlock);
                         doubleSpendingChain.push(newAttackBlock);
-                        currentIterForkBranches.push(newAttackBlock);
+                        //currentIterForkBranches.push(newAttackBlock);
                         blockMap.set(latestBlockId + 1, newAttackBlock);
                         latestBlockId += 1;
                     }
@@ -186,7 +186,7 @@ function blockGenerationLogestChain(){
     if(doubleSpendingChain.length != doubleSpendingLength) {
         var indexOfDoubleSpendingBlockOnLongestBlock = 0;
         for (var i = 0; i < longestBlockChain.length; i++) {
-            if(longestBlockChain[i].blockId == doubleSpendingChain[0].blockId) {
+            if(longestBlockChain[i].blockId == doubleSpendingChain[0].preBlockId) {
                 indexOfDoubleSpendingBlockOnLongestBlock = i;
             }
         }
@@ -200,8 +200,8 @@ function blockGenerationLogestChain(){
             doubleSpendingChain = [];
         }
     }
-    //console.log("doublespendingChain: " + doubleSpendingChain);
-    //console.log("after resolved Longest Chain: " + longestBlockChain);
+    console.log("doublespendingChain: " + doubleSpendingChain);
+    console.log("after resolved Longest Chain: " + longestBlockChain);
 }
 
 

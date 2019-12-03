@@ -208,6 +208,11 @@ body {
 	text-align: center;
 }
 
+.input-check {
+	width: 35px;
+	height: 35px;
+}
+
 /* Hide arrows from text input field */
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 

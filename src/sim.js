@@ -52,8 +52,14 @@ exports.changeNodeParams = function(req) {
 	var reqNodeId = parseInt(req.params.nodeId);
     var reqProtocol = req.body.protocol;
     var reqHashRate = req.body.hashRate;
-    var reqHonestOrAttacker =  req.body.honestOrAttacker;
-    var reqTypeOfAttack = req.body.typeOfAttack; 
+    var reqHonestOrAttacker; = req.body.honestOrAttacker;
+    var reqTypeOfAttack; = req.body.typeOfAttack; 
+
+    // Attack set to true; mark as attacker
+    if (req.body.attack) {
+        reqTypeOfAttack = "doubleSpending";
+        reqHonestOrAttacker = false;
+    }
 
     var node = nodes[reqNodeId];
     if(node) {  // if the node is not been delete

@@ -309,7 +309,7 @@ var networkParams = [
 // nodeParams = { "nodeId": [[name, id, inputVal, inputType, enabled, branch], ...], ...}
 var nodeParams = {};
 var tempNodeParams = [
-    ["Attack", "attack", "None", "dropdown", true],
+    ["Attack", "attack", false, "check", true],
     ["Hash Rate", "hashRate", networkParams[1][2], "text", true],
     ["Latency", "latency", 0, "text", true]
 ];
@@ -318,7 +318,7 @@ var tempNodeParams = [
 var timesteps = [];
 
 // [{"time": 0, "id": 123}]
-var deletedNodes = [];
+// var deletedNodes = [];
 
 var blockAppearanceTimes = {};
 var highestBlockId = -1;
@@ -501,6 +501,17 @@ function addParamListItem(name, id, inputVal, inputType, enabled) {
 
         case "dropdown":
             break;
+
+        case "check":
+            $('<input type="checkbox" class="input-checkbox" id="' + id + '">')
+                .appendTo(paramRight)
+                .prop('disabled', isDisabled);
+
+            if (inputVal) {
+                $('#' + id).prop('checked', true);
+            }
+
+            break;
     }
 }
 
@@ -580,7 +591,14 @@ function displayNodeParams(id) {
             if (inRealtime) {
                 // Update nodeParams
                 for (var i = 0; i < nodeParams[id].length; i++) {
-                    nodeParams[id][i][2] = $('#' + nodeParams[id][i][1]).val();
+                    if (nodeParams[id][i][1] == "attack") {
+                        console.log("set attack to...");
+                        nodeParams[id][i][2] = $('#' + nodeParams[id][i][1]).prop('checked');
+
+                        console.log(nodeParams[id][i][2]);
+                    } else {
+                        nodeParams[id][i][2] = $('#' + nodeParams[id][i][1]).val();
+                    }
                 }
 
                 changeNodeParams(id);
@@ -667,8 +685,19 @@ function addNode() {
     if (inRealtime) {
         var data = {"numberOfNode": 1};
         for (var i = 0; i < tempNodeParams.length; i++) {
-            data[tempNodeParams[i][1]] = $('#' + tempNodeParams[i][1]).val();
+
+            if (tempNodeParams[i][1] == "attack") {
+                console.log("set attack to...");
+                data[tempNodeParams[i][1]] = $('#' + tempNodeParams[i][1]).prop('checked');
+
+                console.log(data[tempNodeParams[i][1]]);
+            } else {
+                data[tempNodeParams[i][1]] = $('#' + tempNodeParams[i][1]).val();
+            }
         }
+
+        console.log("Parameters:");
+        console.log(tempNodeParams);
 
         $.ajax({
             url: '/nodes',
@@ -685,7 +714,13 @@ function addNode() {
             var newParams = [];
 
             for (var i = 0; i < tempNodeParams.length; i++) {
-                newParams.push([tempNodeParams[i][0], tempNodeParams[i][1], $('#' + tempNodeParams[i][1]).val(), tempNodeParams[i][3], tempNodeParams[i][4]]);
+                var v = $('#' + tempNodeParams[i][1]).val();
+
+                if (tempNodeParams[i][1] == "attack") {
+                    v = $('#' + tempNodeParams[i][1]).prop('checked');
+                }
+
+                newParams.push([tempNodeParams[i][0], tempNodeParams[i][1], v, tempNodeParams[i][3], tempNodeParams[i][4]]);
             }
 
             nodeParams[newNode.nodeId] = newParams;
@@ -705,7 +740,8 @@ function addNode() {
             });
 
             // Assign it the default colour:
-             var newColour = generateNodeColour();
+            var newColour = generateNodeColour();
+
             //var newColour = defaultColour;
             setNodeColour(newNode.nodeId, RGBtoString(newColour));
 
@@ -725,7 +761,7 @@ function addNode() {
 
 // DELETE /nodes/id
 function deleteNode(id) {
-    deletedNodes.push({"time": maxTimestep, "id": id.split("-")[1]});
+    // deletedNodes.push({"time": maxTimestep, "id": id.split("-")[1]});
 
     $.ajax({
         url: '/nodes/' + id.split("-")[1],
@@ -741,7 +777,11 @@ function deleteNode(id) {
 function changeNodeParams(nodeId) {
     var data = {};
     for (var i = 0; i < nodeParams[nodeId].length; i++) {
-        data[nodeParams[nodeId][i][1]] = $('#' + nodeParams[nodeId][i][1]).val();
+        if (nodeParams[nodeId][i][1] == "attack") {
+            data[nodeParams[nodeId][i][1]] = $('#' + nodeParams[nodeId][i][1]).prop('checked');
+        } else {
+            data[nodeParams[nodeId][i][1]] = $('#' + nodeParams[nodeId][i][1]).val();
+        }
     }
 
     timesteps[maxTimestep]["nodeParams"] = JSON.parse(JSON.stringify(nodeParams))
@@ -1084,12 +1124,12 @@ function onSliderClick() {
     }
 
     console.log("Time: " + currTimestep + "/" + maxTimestep);
-    console.log("Deleted at this point:");
+    // console.log("Deleted at this point:");
 
-    var d = getNodesDeletedBefore(currTimestep);
-    for (var i = 0; i < d.length; i++) {
-        console.log("\t[" + d[i]["time"] + '] node-' + d[i]["id"]);
-    }
+    // var d = getNodesDeletedBefore(currTimestep);
+    // for (var i = 0; i < d.length; i++) {
+    //     console.log("\t[" + d[i]["time"] + '] node-' + d[i]["id"]);
+    // }
 
     // Update parameter list to match info at current timestep
     var headerText = $(paramHeader).text();
@@ -1104,19 +1144,19 @@ function onSliderClick() {
 }
 
 // Return a list of nodes that were deleted before time
-function getNodesDeletedBefore(t) {
-    var l = [];
+// function getNodesDeletedBefore(t) {
+//     var l = [];
 
-    for (var i = 0; i < deletedNodes.length; i++) {
-        if (deletedNodes[i]["time"] > t) {
-            return l;
-        }
+//     for (var i = 0; i < deletedNodes.length; i++) {
+//         if (deletedNodes[i]["time"] > t) {
+//             return l;
+//         }
 
-        l.push(deletedNodes[i]);
-    }
+//         l.push(deletedNodes[i]);
+//     }
 
-    return l;
-}
+//     return l;
+// }
 
 
 

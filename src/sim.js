@@ -16,6 +16,7 @@ var blockMap = new Map();
 var initBlock = new Block( -1, -1);
 blockMap.set(-1, initBlock);
 longestBlockChain.push(initBlock);
+var isGHOST = true;
 
 // portocols 
 var longestChain = "longestChain";
@@ -130,12 +131,18 @@ exports.acquireNetworkState = function(req) {
 function quickResolvedLongestChain() {
     var countNonLatencyNode = 0;
     var currentBlock;
+
     for(var i = 0; i < forkBranches[forkBranches.length - 1].length; i++) {
         if(forkBranches[forkBranches.length - 1][i].latency == 0) {
             countNonLatencyNode++;
             currentBlock = forkBranches[forkBranches.length - 1][i];
         }
     }
+
+    if(isGHOST) { // if its GOST 
+        currentBlock = GHOSTHelperFunction();
+    }
+
     if(countNonLatencyNode == 1) {
         console.log("Map Before: ");
         console.log(blockMap);
@@ -326,6 +333,9 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
             if(countNonLatencyNode != 1) {
                 return;
             }
+            if(isGHOST) { // if its GOST 
+                currentBlock = GHOSTHelperFunction();
+            }
             // find the beginning of the sub tree
             var subBlock = currentBlock;
             var subLongestChain = [];
@@ -397,6 +407,33 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
             currentIterForkBranches = [];
         }
     }
+}
+function GHOSTHelperFunction() {
+    // if its GOST 
+        var checkLogestChainForGHOST = [];
+        for(var i = 0; i < forkBranches[forkBranches.length - 1].length; i++) {
+            checkLogestChainForGHOST.push(1);
+            var tempBlock = forkBranches[forkBranches.length - 1][i];
+            for(var j = forkBranches.length - 2; j >= 0; j--) {
+                for(var k = 0; k < forkBranches[j].length; k++) {
+                    if(forkBranches[j][k].blockId == tempBlock.preBlockId) {
+                        checkLogestChainForGHOST[checkLogestChainForGHOST.length - 1]++;
+                        tempBlock = forkBranches[j][k];
+                        break;
+                    }
+                }
+            }
+        }
+        var index = 0;
+        var longest = 0;
+        for(var i = 0; i < checkLogestChainForGHOST.length; i++){
+            if(longest < checkLogestChainForGHOST[i]){
+                longest = checkLogestChainForGHOST[i];
+                index = i;
+            }
+        }
+        return forkBranches[forkBranches.length - 1][index];
+    
 }
 function resetNodesAcceptPreBlock(needResetBlockId, setToBlockId) {
     for(var i = 0; i < nodes.length; i++) {

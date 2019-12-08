@@ -251,7 +251,39 @@ function blockGenerationLogestChain(){
                 indexOfDoubleSpendingBlockOnLongestBlock = i;
             }
         }
-        if(doubleSpendingChain.length > forkBranches.length + (longestBlockChain.length - 1 - indexOfDoubleSpendingBlockOnLongestBlock)) {
+        var validDoubleSpendingChainLength = 0;
+        for(var i = 0; i < doubleSpendingChain.length; i++) {
+            if(doubleSpendingChain[i].latency == 0) {
+                validDoubleSpendingChainLength++;
+            }
+        }
+        var forkBranchesLength = forkBranches.length;
+        if(GHOST) {
+            var checkLogestChainForGHOST = [];
+            for(var i = 0; i < forkBranches[forkBranches.length - 1].length; i++) {
+                checkLogestChainForGHOST.push(1);
+                var tempBlock = forkBranches[forkBranches.length - 1][i];
+                for(var j = forkBranches.length - 2; j >= 0; j--) {
+                    for(var k = 0; k < forkBranches[j].length; k++) {
+                        if(forkBranches[j][k].blockId == tempBlock.preBlockId) {
+                            checkLogestChainForGHOST[checkLogestChainForGHOST.length - 1]++;
+                            tempBlock = forkBranches[j][k];
+                            break;
+                        }
+                    }
+                }
+            }
+            var index = 0;
+            var longest = 0;
+            for(var i = 0; i < checkLogestChainForGHOST.length; i++){
+                if(longest < checkLogestChainForGHOST[i]){
+                    longest = checkLogestChainForGHOST[i];
+                    index = i;
+                }
+            }
+            forkBranchesLength = longest;
+        }
+        if(validDoubleSpendingChainLength > forkBranches.length + (longestBlockChain.length - 1 - indexOfDoubleSpendingBlockOnLongestBlock)) {
             forkBranches = [];
             longestBlockChain = longestBlockChain.slice(0, indexOfDoubleSpendingBlockOnLongestBlock);
             for(var i = 0; i < doubleSpendingChain.length; i++) {

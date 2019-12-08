@@ -118,41 +118,49 @@ exports.deleteNode = function(req) {
 
 exports.acquireNetworkState = function(req) {
     reduceLatncy();
-    //quickResolvedLongestChain();
+    if(forkBranches.length > 0) {
+        quickResolvedLongestChain();
+    }
 	blockGenerationLogestChain();
 	return {longestChain: longestBlockChain, forkBranches: forkBranches, doubleSpendingChain: doubleSpendingChain};
 }
+
 
 //helper functions
 function quickResolvedLongestChain() {
     var countNonLatencyNode = 0;
     var currentBlock;
-    for(var i = 0; i < longestBlockChain[longestBlockChain.length - 1].length; i++) {
-        if(longestBlockChain[longestBlockChain.length - 1][i].latency == 0) {
+    for(var i = 0; i < forkBranches[forkBranches.length - 1].length; i++) {
+        if(forkBranches[forkBranches.length - 1][i].latency == 0) {
             countNonLatencyNode++;
-            currentBlock = longestBlockChain[longestBlockChain.length - 1][i];
+            currentBlock = forkBranches[forkBranches.length - 1][i];
         }
     }
     if(countNonLatencyNode == 1) {
+        console.log("Map Before: ");
+        console.log(blockMap);
+        var subBlock = currentBlock;
         var subLongestChain = [];
-        subLongestChain.push(currentBlock);
+        subLongestChain.push(subBlock);
             for(var i = forkBranches.length - 1; i >= 0; i--) {
                 for(var j = 0; j < forkBranches[i].length; j++) {
-                    if(forkBranches[i][j].blockId == currentBlock.preBlockId) { // find parenters of current subBlock, add to array that need to add to longest chain
-                        currentBlock = forkBranches[i][j];
-                        subLongestChain.push(currentBlock);
+                    if(forkBranches[i][j].blockId == subBlock.preBlockId) { // find parenters of current subBlock, add to array that need to add to longest chain
+                        subBlock = forkBranches[i][j];
+                        subLongestChain.push(subBlock);
                         break;
                     } else { 
-
+                        // delete this block from forkBranches and set any node working on this branch to the newest blockID(currentIterForkBranches[0].blockId)
+                        resetNodesAcceptPreBlock(forkBranches[i][j].blockId, currentBlock.blockId);
+                        // delete this block from blockMap
+                        //blockMap.delete(forkBranches[i][j].blockId)
                     }
-                    // delete this block from forkBranches and set any node working on this branch to the newest blockID(currentIterForkBranches[0].blockId)
-                    resetNodesAcceptPreBlock(forkBranches[i][j].blockId, currentBlock.blockId);
-                    // delete this block from blockMap
-                    blockMap.delete(forkBranches[i][j].blockId)
+
                     //forkBranches[i].splice(j, 1);
                     //j++;
                 }
             }
+            console.log("Map: ");
+            console.log(blockMap);
             subLongestChain.reverse();
             // Now subLongestChain contain all the block need to add to longest chain
             for(var i = 0; i < subLongestChain.length; i++) {
@@ -196,6 +204,8 @@ function blockGenerationLogestChain(){
         var found = blockGenerationLogestChainHonestHelper(nodes[i]);
         console.log("Entering the finding nodes loop, node id: " + nodes[i].nodeId);
         console.log("found: " + found);
+        console.log("blocksInForkBranches: " + blocksInForkBranches);
+        console.log("forkBranches: " + forkBranches);
         // Now we know if we found an block or not base on different type of protocol add valid block or continue to next node
         if(found) {
             if(nodes[i].honestOrAttacker == false) { //honest node
@@ -305,8 +315,10 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
                 //forkBranches.push(currentIterForkBranches);
             //}  
             var countNonLatencyNode = 0;
+            var currentBlock;
             for(var i = 0; i < forkBranches[forkBranches.length - 1]; i++) {
-                if(forkBranches[forkBranches.length - 1].latency == 0) {
+                if(forkBranches[forkBranches.length - 1][i].latency == 0) {
+                    currentBlock = forkBranches[forkBranches.length - 1][i];
                     countNonLatencyNode++;
                 }
             }
@@ -315,7 +327,7 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
                 return;
             }
             // find the beginning of the sub tree
-            var subBlock = currentIterForkBranches[0];
+            var subBlock = currentBlock;
             var subLongestChain = [];
             subLongestChain.push(subBlock);
 
@@ -326,16 +338,17 @@ function resolvedLongestChain(blocksInForkBranches, currentIterForkBranches) {
                         subLongestChain.push(subBlock);
                         break;
                     } else { 
-
+                        // delete this block from forkBranches and set any node working on this branch to the newest blockID(currentIterForkBranches[0].blockId)
+                        resetNodesAcceptPreBlock(forkBranches[i][j].blockId, currentBlock);
+                        // delete this block from blockMap
+                        //blockMap.delete(forkBranches[i][j].blockId)
                     }
-                    // delete this block from forkBranches and set any node working on this branch to the newest blockID(currentIterForkBranches[0].blockId)
-                    resetNodesAcceptPreBlock(forkBranches[i][j].blockId, currentIterForkBranches[0].blockId);
-                    // delete this block from blockMap
-                    blockMap.delete(forkBranches[i][j].blockId)
+
                     //forkBranches[i].splice(j, 1);
                     //j++;
                 }
             }
+
             subLongestChain.reverse();
             // Now subLongestChain contain all the block need to add to longest chain
             for(var i = 0; i < subLongestChain.length; i++) {
@@ -506,6 +519,7 @@ function addBlockToNetwork(node, currentIterForkBranches, blocksInForkBranches) 
 
     var validBlock = new Block(latestBlockId + 1, node.nodeId, node.acceptPreBlock, node.latency);
     console.log("validBlock latency: " + validBlock.latency);
+    console.log("node.acceptPreBlock: " + node.acceptPreBlock);
     
     var perBlock = blockMap.get(node.acceptPreBlock);
     nodes[node.nodeId].acceptPreBlock = latestBlockId + 1; // update the nodeID

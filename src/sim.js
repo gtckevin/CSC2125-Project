@@ -19,6 +19,8 @@ longestBlockChain.push(initBlock);
 var isGHOST = true;
 var totalBlocks = 0;
 var orphanedBlocks = 0;
+var doubleSpendingAttackSuccessful = 0;
+var doubleSpendingAttackFailed = 0;
 
 // portocols 
 var longestChain = "longestChain";
@@ -127,6 +129,8 @@ exports.acquireNetworkState = function(req) {
     blockGenerationLogestChain();
     console.log("orphaned blocks: " + orphanedBlocks);
     console.log("total network blocks: " + blockMap.size);
+    console.log("attack successful: " + doubleSpendingAttackSuccessful);
+    console.log("attack failed: " + doubleSpendingAttackFailed);
 	return {longestChain: longestBlockChain, forkBranches: forkBranches, doubleSpendingChain: doubleSpendingChain};
 }
 
@@ -294,6 +298,11 @@ function blockGenerationLogestChain(){
                 forkBranchesLength = longest;
             } 
         }
+        if(validDoubleSpendingChainLength + 1 <= forkBranchesLength + (longestBlockChain.length - 1 - indexOfDoubleSpendingBlockOnLongestBlock)) {
+            doubleSpendingChain = [];
+            doubleSpendingAttackFailed++;
+            return;
+        }
         if(validDoubleSpendingChainLength > forkBranchesLength + (longestBlockChain.length - 1 - indexOfDoubleSpendingBlockOnLongestBlock)) {
             forkBranches = [];
             longestBlockChain = longestBlockChain.slice(0, indexOfDoubleSpendingBlockOnLongestBlock);
@@ -302,6 +311,7 @@ function blockGenerationLogestChain(){
             }
             //console.log("cleaning the double spending Chain")
             doubleSpendingChain = [];
+            doubleSpendingAttackSuccessful++;
         }
     }
     //console.log("doublespendingChain: " + doubleSpendingChain);

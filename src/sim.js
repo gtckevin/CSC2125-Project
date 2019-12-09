@@ -17,6 +17,8 @@ var initBlock = new Block( -1, -1);
 blockMap.set(-1, initBlock);
 longestBlockChain.push(initBlock);
 var isGHOST = true;
+var totalBlocks = 0;
+var orphanedBlocks = 0;
 
 // portocols 
 var longestChain = "longestChain";
@@ -122,7 +124,9 @@ exports.acquireNetworkState = function(req) {
     if(forkBranches.length > 0) {
         quickResolvedLongestChain();
     }
-	blockGenerationLogestChain();
+    blockGenerationLogestChain();
+    console.log("orphaned blocks: " + orphanedBlocks);
+    console.log("total network blocks: " + blockMap.size);
 	return {longestChain: longestBlockChain, forkBranches: forkBranches, doubleSpendingChain: doubleSpendingChain};
 }
 
@@ -156,6 +160,7 @@ function quickResolvedLongestChain() {
                         subLongestChain.push(subBlock);
                         break;
                     } else { 
+                        orphanedBlocks++;
                         // delete this block from forkBranches and set any node working on this branch to the newest blockID(currentIterForkBranches[0].blockId)
                         resetNodesAcceptPreBlock(forkBranches[i][j].blockId, currentBlock.blockId);
                         // delete this block from blockMap

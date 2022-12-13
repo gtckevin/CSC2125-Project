@@ -23,6 +23,6 @@
     "cytoscape": "^3.12.1",
     "cytoscape-dagre": "^2.2.2",
     "ejs": "^2.7.1",
-    "express": "^4.17.1"
+    "express": "^4.17.3"
   }
 }
